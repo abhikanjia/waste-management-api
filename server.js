@@ -21,6 +21,21 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running' });
 });
 
+// TEST DATABASE CONNECTION - Add this route FIRST
+app.get('/api/test-db', async (req, res) => {
+    try {
+        const db = require('./config/database');
+        const [rows] = await db.execute('SELECT 1 as test');
+        res.json({ success: true, message: 'Database connected!', data: rows });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            details: 'Check your .env file and MySQL connection'
+        });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
