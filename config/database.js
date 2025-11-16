@@ -10,9 +10,9 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
 
-    ssl: {
-        rejectUnauthorized: false  // Required for TiDB Cloud
-    }
+    ssl: process.env.DB_HOST && process.env.DB_HOST.includes('tidbcloud.com')
+        ? { rejectUnauthorized: false }
+        : false
 });
 
 const promisePool = pool.promise();

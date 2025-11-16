@@ -24,6 +24,7 @@ exports.getUserById = async (req, res) => {
 exports.createOrUpdateUser = async (req, res) => {
     try {
         const { userId, name, email, phone, languagePreference, profilePictureUrl } = req.body;
+        const now = new Date();
 
         const [existing] = await db.execute(
             'SELECT userId FROM users WHERE userId = ?',
@@ -31,19 +32,19 @@ exports.createOrUpdateUser = async (req, res) => {
         );
 
         if (existing.length > 0) {
-            // Update existing user
+            // Update existing user - manually set updatedAt
             await db.execute(
                 `UPDATE users SET name = ?, email = ?, phone = ?, 
-         languagePreference = ?, profilePictureUrl = ?, updatedAt = NOW()
+         languagePreference = ?, profilePictureUrl = ?, updatedAt = ?
          WHERE userId = ?`,
-                [name, email, phone, languagePreference, profilePictureUrl, userId]
+                [name, email, phone, languagePreference, profilePictureUrl, now, userId]
             );
         } else {
             // Create new user
             await db.execute(
-                `INSERT INTO users (userId, name, email, phone, languagePreference, profilePictureUrl)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-                [userId, name, email, phone, languagePreference || 'en', profilePictureUrl]
+                `INSERT INTO users (userId, name, email, phone, languagePreference, profilePictureUrl, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userId, name, email, phone, languagePreference || 'en', profilePictureUrl, now, now]
             );
         }
 

@@ -28,7 +28,7 @@ exports.getUnreadNotifications = async (req, res) => {
 
         const [rows] = await db.execute(
             `SELECT * FROM notifications 
-       WHERE userId = ? AND isRead = FALSE 
+       WHERE userId = ? AND isRead = 0 
        ORDER BY createdAt DESC`,
             [userId]
         );
@@ -44,11 +44,12 @@ exports.getUnreadNotifications = async (req, res) => {
 exports.createNotification = async (req, res) => {
     try {
         const { userId, type, title, body, complaintId, status } = req.body;
+        const now = new Date();
 
         const [result] = await db.execute(
-            `INSERT INTO notifications (userId, type, title, body, complaintId, status)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-            [userId, type, title, body, complaintId || null, status || null]
+            `INSERT INTO notifications (userId, type, title, body, complaintId, status, createdAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [userId, type, title, body, complaintId || null, status || null, now]
         );
 
         res.status(201).json({
@@ -66,12 +67,13 @@ exports.createNotification = async (req, res) => {
 exports.markAsRead = async (req, res) => {
     try {
         const { notificationId } = req.params;
+        const now = new Date();
 
         await db.execute(
             `UPDATE notifications 
-       SET isRead = TRUE, readAt = NOW() 
+       SET isRead = 1, readAt = ? 
        WHERE notificationId = ?`,
-            [notificationId]
+            [now, notificationId]
         );
 
         res.json({ success: true, message: 'Notification marked as read' });
@@ -85,12 +87,13 @@ exports.markAsRead = async (req, res) => {
 exports.markAllAsRead = async (req, res) => {
     try {
         const { userId } = req.params;
+        const now = new Date();
 
         await db.execute(
             `UPDATE notifications 
-       SET isRead = TRUE, readAt = NOW() 
-       WHERE userId = ? AND isRead = FALSE`,
-            [userId]
+       SET isRead = 1, readAt = ? 
+       WHERE userId = ? AND isRead = 0`,
+            [now, userId]
         );
 
         res.json({ success: true, message: 'All notifications marked as read' });
